@@ -3,6 +3,8 @@
 <a href="https://ku-cvlab.github.io/GaussianTalker"><img src="https://img.shields.io/badge/Project%20Page-online-brightgreen"></a>
 <br>
 
+"REFER TO THE `DockerRead.md` Instead"
+
 This is our official implementation of the paper 
 
 "GaussianTalker: Real-Time High-Fidelity Talking Head Synthesis with Audio-Driven 3D Gaussian Splatting"
