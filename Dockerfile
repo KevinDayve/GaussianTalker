@@ -31,6 +31,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY submodules submodules
 RUN pip install -e submodules/custom-bg-depth-diff-gaussian-rasterization && \
     pip install -e submodules/simple-knn
+    pip install "git+https://github.com/facebookresearch/pytorch3d.git"
 #Install TensorFlow and protobuf
 RUN pip install --no-cache-dir tensorflow-gpu==2.8.0 "protobuf<=3.20.1"
 
