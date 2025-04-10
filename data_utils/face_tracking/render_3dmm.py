@@ -150,8 +150,8 @@ class Render_3DMM(nn.Module):
         raster_settings = RasterizationSettings(
             image_size=(self.img_h, self.img_w),
             blur_radius=np.log(1.0 / 1e-4 - 1.0) * sigma / 18.0,
-            faces_per_pixel=5, #Was 2, moving it to 5. Perhaps it will fix OOM.
-            bin_size=0, #Patched update to accomodate a naive implementation (for more complex Geometry) - May cause performance bottlenecks.
+            faces_per_pixel=2, #Was 2, moving it to 5. Perhaps it will fix OOM.
+            # bin_size=0, #Patched update to accomodate a naive implementation (for more complex Geometry) - May cause performance bottlenecks.
             perspective_correct=False,
         )
         blend_params = blending.BlendParams(background_color=[0, 0, 0])
