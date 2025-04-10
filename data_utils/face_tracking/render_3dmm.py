@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import os
+import gc
 from pytorch3d.structures import Meshes
 from pytorch3d.renderer import (
     look_at_view_transform,
@@ -59,10 +60,12 @@ class SoftSimpleShader(nn.Module):
         return self
 
     def forward(self, fragments, meshes, **kwargs) -> torch.Tensor:
-
+        torch.cuda.empty_cache()
+        gc.collect()
         texels = meshes.sample_textures(fragments)
         blend_params = kwargs.get("blend_params", self.blend_params)
-
+        #Release memory again.
+        torch.cuda.empty_cache()
         cameras = kwargs.get("cameras", self.cameras)
         if cameras is None:
             msg = "Cameras must be specified either at initialization \
@@ -70,10 +73,22 @@ class SoftSimpleShader(nn.Module):
             raise ValueError(msg)
         znear = kwargs.get("znear", getattr(cameras, "znear", 1.0))
         zfar = kwargs.get("zfar", getattr(cameras, "zfar", 100.0))
+        torch.cuda.empty_cache()
+        gc.collect()
+        orig_device = texels.device
+        if isinstance(texels, torch.Tensor):
+            try:
+                texels, fragments = texels.to("cpu"), fragments.to("cpu")
+            except:
+                pass
+        else:
+            print(f'type of texels and fragments: {type(texels)} and fragments: {type(fragments)}')
+        torch.cuda.empty_cache()
+        gc.collect()
         images = softmax_rgb_blend(
             texels, fragments, blend_params, znear=znear, zfar=zfar
         )
-        return images
+        return images.to(orig_device)
 
 
 class Render_3DMM(nn.Module):
@@ -135,7 +150,8 @@ class Render_3DMM(nn.Module):
         raster_settings = RasterizationSettings(
             image_size=(self.img_h, self.img_w),
             blur_radius=np.log(1.0 / 1e-4 - 1.0) * sigma / 18.0,
-            faces_per_pixel=2,
+            faces_per_pixel=5, #Was 2, moving it to 5. Perhaps it will fix OOM.
+            bin_size=0, #Patched update to accomodate a naive implementation (for more complex Geometry) - May cause performance bottlenecks.
             perspective_correct=False,
         )
         blend_params = blending.BlendParams(background_color=[0, 0, 0])
@@ -145,6 +161,7 @@ class Render_3DMM(nn.Module):
                 lights=lights, blend_params=blend_params, cameras=cameras
             ),
         )
+        torch.cuda.empty_cache()
         return renderer.to(self.device)
 
     @staticmethod

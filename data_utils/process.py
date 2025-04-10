@@ -381,6 +381,7 @@ if __name__ == '__main__':
     parser.add_argument('path', type=str, help="path to video file")
     parser.add_argument('--task', type=int, default=-1, help="-1 means all")
     parser.add_argument('--asr', type=str, default='deepspeech', help="wav2vec or deepspeech")
+    parser.add_argument('--downgrade', action='store_true', help="whether to downgrade the video to Obama resolution. (might help with computations)")
 
     opt = parser.parse_args()
 
@@ -397,7 +398,12 @@ if __name__ == '__main__':
     os.makedirs(gt_imgs_dir, exist_ok=True)
     os.makedirs(torso_imgs_dir, exist_ok=True)
 
-
+    if opt.downgrade:
+        print(f'[INFO] ===== downgrading video to 450x450 @ 25 FPS (Obama Resolution) =====')
+        downgradedPath = opt.path.replace('.mp4', '_downgrade.mp4')
+        os.system(f'ffmpeg -i {opt.path} -vf "scale=450:450,fps=25" -y {downgradedPath}')
+        opt.path = downgradedPath
+        print(f'[INFO] ===== finished downgrading video =====')
     # extract audio
     if opt.task == -1 or opt.task == 1:
         extract_audio(opt.path, wav_path)
