@@ -1,10 +1,43 @@
 # Gaussian Talker Implementation (Get started rapidly).
 
-### Built the Docker Image.
+### Inside the Host machine, ensure to install Nvidia container toolkit
+```bash
+sudo apt update
+sudo apt install -y docker.io
+sudo systemctl start docker
+sudo systemctl enable docker
+```
+
+#### Now Install NVIDIA's container toolkit:
+```bash
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) && \
+curl -s -L https://nvidia.github.io/libnvidia-container/gpgkey | sudo apt-key add - && \
+curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.list | \
+sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list && \
+sudo apt-get update && \
+sudo apt-get install -y nvidia-container-toolkit
+```
+
+#### Then configure Docker.
+```bash
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+
+
+### Build the Docker Image.
 ```bash
 git clone https://github.com/KevinDayve/GaussianTalker.git
 cd GaussianTalker
 docker build -t gaussian-talker:v1 .
+```
+
+### Caveat (CAUTION):
+Sometimes, the Dockerbuild might fail because the Submodules don't have the correct commmits fetched. In case that happens,
+```bash
+rm -rf submodules/*
+git submodule deinit -f .
+git submodule update --init --recursive
 ```
 
 ### Run the Container.
