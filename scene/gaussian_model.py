@@ -20,6 +20,7 @@ from plyfile import PlyData, PlyElement
 from random import randint
 from utils.sh_utils import RGB2SH
 from simple_knn._C import distCUDA2
+import gc
 from utils.graphics_utils import BasicPointCloud
 from utils.general_utils import strip_symmetric, build_scaling_rotation
 from scene.deformation import deform_network
@@ -140,9 +141,19 @@ class GaussianModel:
         features[:, 3:, 1:] = 0.0
 
         print("Number of points at initialisation : ", fused_point_cloud.shape[0])
-
-        dist2 = torch.clamp_min(distCUDA2(torch.from_numpy(np.asarray(pcd.points)).float().cuda()), 0.0000001)
-        
+        # torch.cuda.empty_cache()
+        # gc.collect()
+        # print(f'Dimensions of the PCD points: {pcd.points.shape}')
+        # print(f'Type of the goddamn poiunts: {type(pcd.points)}')
+        print("\n[DEBUG] Memory before loading point cloud:")
+        print(f"Allocated: {torch.cuda.memory_allocated() / (1024**2):.2f} MB")
+        print(f"Reserved : {torch.cuda.memory_reserved() / (1024**2):.2f} MB")
+        try:
+            pointCloud = torch.from_numpy(np.asarray(pcd.points)).float().cuda()
+            print(f'Point cloud data-type: {type(pointCloud)}')
+            dist2 = torch.clamp_min(distCUDA2(pointCloud), 0.0000001)
+        except Exception as e:
+            print(f'[CUDA ERROR]: {e}')
         scales = torch.log(torch.sqrt(dist2))[...,None].repeat(1, 3)
         rots = torch.zeros((fused_point_cloud.shape[0], 4), device="cuda")
         rots[:, 0] = 1
