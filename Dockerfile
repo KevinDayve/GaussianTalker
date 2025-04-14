@@ -5,7 +5,8 @@ FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 ENV DEBIAN_FRONTEND=noninteractive
 #For Ampere GPUs - change as required.
 ENV TORCH_CUDA_ARCH_LIST="8.6"
-
+# this ensures build sanctity - otherwise the image may be built with a different CUDA version than the one used to build the PyTorch wheel
+ENV CUDAARCHS="86"
 
 #Install system dependencies
 RUN apt-get update && apt-get install -y \

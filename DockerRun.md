@@ -43,6 +43,7 @@ git submodule update --init --recursive
 ### Run the Container.
 ```bash
 docker run -itd --gpus=all --ipc=host \
+  --shm_size=16g \
   -v ~/git/GaussianTalker:/root/GaussianTalker \
   --name gaussian_env \
   gaussian-talker:v1 /bin/bash
@@ -100,6 +101,18 @@ cd /data/data/obama
 /home/openface-build/build/bin/FeatureExtraction -f obama.mp4
 mv obama.csv au.csv
 ```
+
+###### Alternatively, you might want to:
+```bash
+docker run -it --rm \
+  -v /home/ubuntu/git/GaussianTalker:/data \
+  algebr/openface:latest \
+  /home/openface-build/build/bin/FeatureExtraction \
+  -fdir /data/data/<your_dataset_name>/ori_imgs \
+  -aus \
+  -out_dir /data/data/<your_dataset_name>/
+```
+> Replace `<your_dataset_name>` with your actual Dataset (Ex. Obama etc)
 
 ### Step 6: Train the Model.
 ```bash
