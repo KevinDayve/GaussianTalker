@@ -55,7 +55,8 @@ def render_set(model_path, name, iteration, scene, gaussians, pipeline,audio_dir
         makedirs(gts_path, exist_ok=True)
     
     viewpoint_stack = scene
-    viewpoint_stack_loader = DataLoader(viewpoint_stack, batch_size=batch_size,shuffle=False,num_workers=32,collate_fn=list)
+    #num-workers was set to 32, it caused low disk space shm. THerefore reducing it to 2.
+    viewpoint_stack_loader = DataLoader(viewpoint_stack, batch_size=batch_size,shuffle=False,num_workers=2,collate_fn=list)
     
     loader = iter(viewpoint_stack_loader)
     
@@ -177,9 +178,22 @@ def render_sets(dataset : ModelParams, hyperparam, iteration : int, pipeline : P
             audio_dir = os.path.join(data_dir, "aud_novel.wav")
             render_set(dataset.model_path, "test",iteration, scene.getTestCameras(), gaussians, pipeline, audio_dir, batch_size)
 
+# def write_frames_to_video(frames, path, codec='mp4v', fps=25, use_imageio=False):
+#     if use_imageio:
+#         imageio.mimwrite(f'{path}.mp4', frames, fps=fps, quality=8, output_params=['-vf', f'fps={fps}'], macro_block_size=None, plugin='ffmpeg')
+#     else:
+#         fourcc = cv2.VideoWriter_fourcc(*codec)
+#         video = cv2.VideoWriter(f'{path}.mp4', fourcc, fps, (frames[0].shape[1], frames[0].shape[0]))
+
+#         for frame in frames:
+#             video.write(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+#         video.release()
 def write_frames_to_video(frames, path, codec='mp4v', fps=25, use_imageio=False):
     if use_imageio:
-        imageio.mimwrite(f'{path}.mp4', frames, fps=fps, quality=8, output_params=['-vf', f'fps={fps}'], macro_block_size=None)
+        writer = imageio.get_writer(f'{path}.mp4', fps=fps, quality=8)
+        for frame in frames:
+            writer.append_data(frame.astype(np.uint8))
+        writer.close()
     else:
         fourcc = cv2.VideoWriter_fourcc(*codec)
         video = cv2.VideoWriter(f'{path}.mp4', fourcc, fps, (frames[0].shape[1], frames[0].shape[0]))
