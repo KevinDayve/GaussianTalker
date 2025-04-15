@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     ffmpeg \
     git \
+    imageio[ffmpeg] \
     libsm6 \
     libxext6 \
     libglm-dev \
